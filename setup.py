@@ -77,6 +77,7 @@ setup(
         'beetsplug.web',
         'beetsplug.lastgenre',
         'beetsplug.metasync',
+        'beetsplug.mbsubmit',
     ],
     entry_points={
         'console_scripts': [
@@ -138,6 +139,7 @@ setup(
         'import': ['rarfile', 'py7zr'],
         'thumbnails': ['pyxdg', 'Pillow'],
         'metasync': ['dbus-python'],
+        'mbsubmit': ['pyratemp'],
         'sonosupdate': ['soco'],
         'scrub': ['mutagen>=1.33'],
         'bpd': ['PyGObject'],

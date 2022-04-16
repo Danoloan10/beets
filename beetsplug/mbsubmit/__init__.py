@@ -21,10 +21,13 @@ implemented by MusicBrainz yet.
 [1] https://wiki.musicbrainz.org/History:How_To_Parse_Track_Listings
 """
 
+import os
+import pyratemp
+import tempfile
 
 from beets.autotag import Recommendation
 from beets.plugins import BeetsPlugin
-from beets.ui.commands import PromptChoice
+from beets.ui.commands import PromptChoice, manual_id
 from beetsplug.info import print_data
 
 
@@ -48,10 +51,26 @@ class MBSubmitPlugin(BeetsPlugin):
         self.register_listener('before_choose_candidate',
                                self.before_choose_candidate_event)
 
+        # TODO configurable
+        seeder_template = os.path.join(os.path.dirname(__file__), 'seeder.html')
+        self.template = pyratemp.Template(filename=seeder_template)
+
     def before_choose_candidate_event(self, session, task):
         if task.rec <= self.threshold:
-            return [PromptChoice('p', 'Print tracks', self.print_tracks)]
+            return [
+                    PromptChoice('p', 'Print tracks', self.print_tracks),
+                    PromptChoice('f', 'seed submit Form', self.seed_form),
+            ]
 
     def print_tracks(self, session, task):
         for i in sorted(task.items, key=lambda i: i.track):
             print_data(None, i, self.config['format'].as_str())
+
+    def seed_form(self, session, task):
+        html = self.template(items=task.items)
+        fd, path = tempfile.mkstemp(suffix='.html')
+        with os.fdopen(fd, 'w') as form:
+            print(html, file=form)
+        os.system(f"ssh void sh -c 'DISPLAY=:0 chrome file://{path}'")
+        return manual_id(session, task)
+
